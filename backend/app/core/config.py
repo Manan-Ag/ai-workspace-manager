@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_chat_model: str = "gemini-3.6-flash"
     gemini_request_timeout_seconds: float = 60
+    guest_session_secret: str = "local-development-guest-session-secret"
 
     model_config = SettingsConfigDict(
         env_file=("../.env", ".env"),

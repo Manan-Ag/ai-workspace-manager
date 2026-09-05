@@ -10,11 +10,13 @@ from app.api.deps import (
     get_project_or_404,
     get_workflow_or_404,
 )
+from app.api.guest_sessions import require_guest_session
 from app.db.session import get_db
 from app.models import (
     Conversation,
     ConversationBranch,
     Message,
+    Project,
     Workflow,
     conversation_workflows,
     project_workflows,
@@ -96,9 +98,12 @@ def _conversation_read(db: Session, conversation: Conversation) -> ConversationR
 
 
 def _validate_workflows(
-    db: Session, workflow_ids: list[UUID]
+    db: Session, workflow_ids: list[UUID], owner_id: UUID
 ) -> list[Workflow]:
-    return [get_workflow_or_404(db, workflow_id) for workflow_id in workflow_ids]
+    return [
+        get_workflow_or_404(db, workflow_id, owner_id)
+        for workflow_id in workflow_ids
+    ]
 
 
 def _replace_conversation_workflows(
@@ -128,10 +133,11 @@ def _replace_conversation_workflows(
 def _create_conversation(
     db: Session,
     payload: ConversationCreate,
+    owner_id: UUID,
 ) -> ConversationRead:
     if payload.project_id is not None:
-        get_project_or_404(db, payload.project_id)
-    direct_workflows = _validate_workflows(db, payload.workflow_ids)
+        get_project_or_404(db, payload.project_id, owner_id)
+    direct_workflows = _validate_workflows(db, payload.workflow_ids, owner_id)
 
     effective_workflows: list[Workflow] = []
     if payload.project_id is not None and payload.inherit_project_workflows:
@@ -153,6 +159,7 @@ def _create_conversation(
         temperature = default_workflow.temperature
 
     conversation = Conversation(
+        owner_id=owner_id,
         project_id=payload.project_id,
         title=(payload.title or "").strip() or "Untitled conversation",
         model_name=model_name,
@@ -181,6 +188,7 @@ def list_all_conversations(
     standalone: bool = False,
     q: str | None = Query(default=None, max_length=200),
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[ConversationRead]:
     if project_id is not None and standalone:
         raise HTTPException(
@@ -188,9 +196,9 @@ def list_all_conversations(
             "project_id and standalone=true cannot be combined",
         )
 
-    statement = select(Conversation)
+    statement = select(Conversation).where(Conversation.owner_id == owner_id)
     if project_id is not None:
-        get_project_or_404(db, project_id)
+        get_project_or_404(db, project_id, owner_id)
         statement = statement.where(Conversation.project_id == project_id)
     elif standalone:
         statement = statement.where(Conversation.project_id.is_(None))
@@ -232,8 +240,9 @@ def list_all_conversations(
 def create_conversation(
     payload: ConversationCreate,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationRead:
-    return _create_conversation(db, payload)
+    return _create_conversation(db, payload, owner_id)
 
 
 @router.get(
@@ -242,12 +251,16 @@ def create_conversation(
 def list_project_conversations(
     project_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[ConversationRead]:
-    get_project_or_404(db, project_id)
+    get_project_or_404(db, project_id, owner_id)
     conversations = list(
         db.scalars(
             select(Conversation)
-            .where(Conversation.project_id == project_id)
+            .where(
+                Conversation.project_id == project_id,
+                Conversation.owner_id == owner_id,
+            )
             .order_by(Conversation.updated_at.desc())
         )
     )
@@ -263,9 +276,10 @@ def create_conversation_from_workflow(
     workflow_id: UUID,
     payload: ConversationCreate,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationRead:
     """Compatibility route for starting a conversation from one workflow."""
-    get_workflow_or_404(db, workflow_id)
+    get_workflow_or_404(db, workflow_id, owner_id)
     workflow_ids = list(dict.fromkeys([workflow_id, *payload.workflow_ids]))
 
     project_id = payload.project_id
@@ -273,7 +287,9 @@ def create_conversation_from_workflow(
         attached_project_ids = list(
             db.scalars(
                 select(project_workflows.c.project_id)
+                .join(Project, Project.id == project_workflows.c.project_id)
                 .where(project_workflows.c.workflow_id == workflow_id)
+                .where(Project.owner_id == owner_id)
                 .order_by(project_workflows.c.created_at, project_workflows.c.project_id)
                 .limit(2)
             )
@@ -292,15 +308,16 @@ def create_conversation_from_workflow(
             "inherit_project_workflows": inherit_project_workflows,
         }
     )
-    return _create_conversation(db, compatible_payload)
+    return _create_conversation(db, compatible_payload, owner_id)
 
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationRead)
 def get_conversation(
     conversation_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationRead:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     return _conversation_read(db, conversation)
 
 
@@ -309,13 +326,14 @@ def update_conversation(
     conversation_id: UUID,
     payload: ConversationUpdate,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationRead:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     updates = payload.model_dump(exclude_unset=True)
     workflow_ids = updates.pop("workflow_ids", None)
 
     if "project_id" in updates and updates["project_id"] is not None:
-        get_project_or_404(db, updates["project_id"])
+        get_project_or_404(db, updates["project_id"], owner_id)
     if "title" in updates:
         if updates["title"] is None or not updates["title"].strip():
             raise HTTPException(
@@ -329,7 +347,7 @@ def update_conversation(
         updates.pop("inherit_project_workflows", None)
 
     if workflow_ids is not None:
-        _validate_workflows(db, workflow_ids)
+        _validate_workflows(db, workflow_ids, owner_id)
         _replace_conversation_workflows(db, conversation.id, workflow_ids)
 
     for field, value in updates.items():
@@ -346,8 +364,9 @@ def update_conversation(
 def list_conversation_workflows(
     conversation_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[WorkflowAttachmentRead]:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     rows = db.execute(
         select(Workflow, conversation_workflows.c.position)
         .join(
@@ -375,9 +394,10 @@ def attach_workflow_to_conversation(
     workflow_id: UUID,
     payload: WorkflowAttachmentUpsert | None = None,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> WorkflowAttachmentRead:
-    conversation = get_conversation_or_404(db, conversation_id)
-    workflow = get_workflow_or_404(db, workflow_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
+    workflow = get_workflow_or_404(db, workflow_id, owner_id)
     current_position = db.scalar(
         select(conversation_workflows.c.position).where(
             conversation_workflows.c.conversation_id == conversation_id,
@@ -433,9 +453,10 @@ def detach_workflow_from_conversation(
     conversation_id: UUID,
     workflow_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> Response:
-    conversation = get_conversation_or_404(db, conversation_id)
-    get_workflow_or_404(db, workflow_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
+    get_workflow_or_404(db, workflow_id, owner_id)
     db.execute(
         delete(conversation_workflows).where(
             conversation_workflows.c.conversation_id == conversation_id,
@@ -453,8 +474,9 @@ def detach_workflow_from_conversation(
 def delete_conversation(
     conversation_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> Response:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     db.delete(conversation)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

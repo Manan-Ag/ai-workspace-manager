@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.engine import Connection, Engine
 
 from app.api.deps import get_conversation_or_404
+from app.api.guest_sessions import require_guest_session
 from app.api.llm_deps import require_llm_provider
 from app.db.session import get_db
 from app.models import BranchSuggestion, Conversation, ConversationBranch, Message
@@ -159,8 +160,9 @@ def _raise_branch_error(exc: Exception) -> None:
 def get_branches(
     conversation_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[ConversationBranch]:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     return list_branches(db, conversation_id)
 
 
@@ -169,8 +171,9 @@ def get_branch_detail(
     conversation_id: UUID,
     branch_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationBranch:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     try:
         return get_branch(db, conversation_id, branch_id)
     except Exception as exc:
@@ -182,8 +185,9 @@ def get_branch_messages(
     conversation_id: UUID,
     branch_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[Message]:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     try:
         branch = get_branch(db, conversation_id, branch_id)
         return list_visible_branch_messages(db, branch)
@@ -201,8 +205,9 @@ def include_branch_context(
     payload: BranchContextInclude,
     db: Session = Depends(get_db),
     provider: LLMProvider = Depends(require_llm_provider),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationBranch:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     try:
         branch = get_branch(db, conversation_id, branch_id)
         return include_omitted_topics(
@@ -228,8 +233,9 @@ def create_branch(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     provider: LLMProvider = Depends(require_llm_provider),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> ConversationBranch:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     try:
         source_branch = get_branch(db, conversation_id, payload.source_branch_id)
         branch = create_branch_cursor(
@@ -262,8 +268,9 @@ def create_message(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     provider: LLMProvider = Depends(require_llm_provider),
+    owner_id: UUID = Depends(require_guest_session),
 ):
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     try:
         branch = get_branch(db, conversation_id, branch_id)
         is_first_main_prompt = branch.is_main and branch.head_message_id is None
@@ -298,8 +305,9 @@ def get_branch_suggestions(
     suggestion_status: Literal["pending", "accepted", "continued", "dismissed"]
     | None = Query(default=None, alias="status"),
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> list[BranchSuggestion]:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     return list_suggestions(db, conversation_id, status=suggestion_status)
 
 
@@ -312,8 +320,9 @@ def accept_branch_suggestion(
     suggestion_id: UUID,
     db: Session = Depends(get_db),
     provider: LLMProvider = Depends(require_llm_provider),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> CompletedTurnRead:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     try:
         suggestion = get_suggestion(db, conversation_id, suggestion_id)
         return _turn_read(
@@ -338,8 +347,9 @@ def continue_branch_suggestion(
     suggestion_id: UUID,
     db: Session = Depends(get_db),
     provider: LLMProvider = Depends(require_llm_provider),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> CompletedTurnRead:
-    conversation = get_conversation_or_404(db, conversation_id)
+    conversation = get_conversation_or_404(db, conversation_id, owner_id)
     try:
         suggestion = get_suggestion(db, conversation_id, suggestion_id)
         return _turn_read(
@@ -363,8 +373,9 @@ def dismiss_branch_suggestion(
     conversation_id: UUID,
     suggestion_id: UUID,
     db: Session = Depends(get_db),
+    owner_id: UUID = Depends(require_guest_session),
 ) -> Response:
-    get_conversation_or_404(db, conversation_id)
+    get_conversation_or_404(db, conversation_id, owner_id)
     try:
         suggestion = get_suggestion(db, conversation_id, suggestion_id)
         dismiss_suggestion(db, suggestion)

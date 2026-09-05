@@ -81,6 +81,7 @@ class Project(TimestampMixin, Base):
     __tablename__ = "projects"
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    owner_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
@@ -99,6 +100,7 @@ class Workflow(TimestampMixin, Base):
     __tablename__ = "workflows"
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    owner_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
     system_prompt: Mapped[str] = mapped_column(Text, default="", nullable=False)
@@ -120,6 +122,7 @@ class Conversation(TimestampMixin, Base):
     __tablename__ = "conversations"
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    owner_id: Mapped[UUID | None] = mapped_column(Uuid, index=True)
     project_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("projects.id", ondelete="SET NULL"), index=True
     )

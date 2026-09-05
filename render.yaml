@@ -23,5 +23,7 @@ services:
         value: gemini-3.6-flash
       - key: GEMINI_REQUEST_TIMEOUT_SECONDS
         value: "60"
+      - key: GUEST_SESSION_SECRET
+        generateValue: true
       - key: GEMINI_API_KEY
         sync: false

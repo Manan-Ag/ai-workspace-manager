@@ -43,6 +43,7 @@ function errorDetail(body: unknown): string | null {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers,
@@ -73,6 +74,10 @@ function queryString(values: Record<string, string | boolean | undefined>) {
 }
 
 export const api = {
+  getGuestSession: () => request<{ active: boolean }>("/api/guest-session"),
+  createGuestSession: () =>
+    request<{ active: boolean }>("/api/guest-session", { method: "POST" }),
+
   listProjects: () => request<Project[]>("/api/projects"),
   getProject: (projectId: string) =>
     request<Project>(`/api/projects/${projectId}`),

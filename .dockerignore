@@ -1,0 +1,12 @@
+.git
+.env
+.DS_Store
+.pytest_cache
+.docker-runtime
+**/.venv
+**/__pycache__
+**/*.pyc
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/*.log

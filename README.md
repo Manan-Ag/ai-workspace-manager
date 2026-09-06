@@ -204,8 +204,9 @@ frontend, while Railway runs the FastAPI Docker service and PostgreSQL.
    `GEMINI_API_KEY`, `GEMINI_CHAT_MODEL=gemini-3.6-flash`, and a long random
    `GUEST_SESSION_SECRET`.
 3. Generate a public Railway domain for the backend.
-4. Import the same repository into Vercel and set `VITE_API_URL` to that Railway
-   domain. The root `vercel.json` builds `frontend/` and preserves React routes.
+4. Import the same repository into Vercel, set the project Root Directory to
+   `frontend`, and set `VITE_API_URL` to that Railway domain. The frontend's
+   `vercel.json` preserves React routes.
 5. Set Railway's `FRONTEND_URL` to the final Vercel domain and redeploy the
    backend so browser requests are accepted only from that frontend.
 

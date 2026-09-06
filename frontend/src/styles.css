@@ -173,6 +173,80 @@ h1 {
   }
 }
 
+.product-tour {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  padding: 24px;
+  place-items: center;
+  background: rgb(26 26 24 / 58%);
+  backdrop-filter: blur(5px);
+}
+
+.product-tour-card {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 38px;
+  border: 1px solid #ded8fb;
+  border-radius: 22px;
+  background: var(--white);
+  box-shadow: 0 28px 90px rgb(16 15 13 / 28%);
+}
+
+.product-tour-card h2 {
+  margin-bottom: 13px;
+  font-size: 1.55rem;
+}
+
+.product-tour-card > p:not(.eyebrow) {
+  margin-bottom: 28px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.product-tour-close {
+  position: absolute;
+  top: 16px;
+  right: 17px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  color: #77786f;
+  background: transparent;
+  font-size: 1.35rem;
+}
+
+.product-tour-close:hover {
+  background: #f1f0eb;
+}
+
+.product-tour-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.product-tour-progress span {
+  width: 32px;
+  height: 4px;
+  border-radius: 99px;
+  background: #e5e3dc;
+}
+
+.product-tour-progress span.active {
+  background: var(--accent);
+}
+
+.product-tour-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 h2 {
   margin-bottom: 0;
   font-size: 1.25rem;

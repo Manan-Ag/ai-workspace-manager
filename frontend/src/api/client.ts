@@ -41,11 +41,13 @@ function errorDetail(body: unknown): string | null {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const guestToken = window.localStorage.getItem("ai-workspace-guest-session");
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(guestToken ? { "X-Guest-Session": guestToken } : {}),
       ...init?.headers,
     },
   });
@@ -76,7 +78,13 @@ function queryString(values: Record<string, string | boolean | undefined>) {
 export const api = {
   getGuestSession: () => request<{ active: boolean }>("/api/guest-session"),
   createGuestSession: () =>
-    request<{ active: boolean }>("/api/guest-session", { method: "POST" }),
+    request<{
+      active: boolean;
+      token: string;
+      conversation_id: string;
+      main_branch_id: string;
+      sample_branch_id: string;
+    }>("/api/guest-session", { method: "POST" }),
 
   listProjects: () => request<Project[]>("/api/projects"),
   getProject: (projectId: string) =>

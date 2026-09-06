@@ -15,6 +15,37 @@ export function AppShell() {
   const [hoveredConversationId, setHoveredConversationId] = useState<string | null>(
     null,
   );
+  const [tourStep, setTourStep] = useState<number | null>(() =>
+    window.localStorage.getItem("ai-workspace-tour-v1") === "pending" ? 0 : null,
+  );
+
+  const tourSteps = [
+    {
+      eyebrow: "Welcome",
+      title: "This sample chat is your two-minute tour.",
+      body: "It is already filled with a realistic product-planning conversation, so you can explore the app before writing anything.",
+    },
+    {
+      eyebrow: "The main idea",
+      title: "Branch from an answer without losing the original.",
+      body: "Every Gemini answer offers Start branch. A branch keeps the relevant context and becomes a focused path beside the main trunk.",
+    },
+    {
+      eyebrow: "Try the tree",
+      title: "Switch between Main and Recruiter demo path.",
+      body: "Use the branch tree on the left of this chat. The sample branch shows how one broad launch discussion becomes a recruiter-focused thread.",
+    },
+    {
+      eyebrow: "Your workspace",
+      title: "Now make it yours.",
+      body: "Create chats with or without projects, save reusable workflows, and search every message. Your guest data is isolated from every other visitor.",
+    },
+  ];
+
+  function closeTour() {
+    window.localStorage.setItem("ai-workspace-tour-v1", "complete");
+    setTourStep(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +189,40 @@ export function AppShell() {
       <main className="main-workspace">
         <Outlet />
       </main>
+      {tourStep !== null && (
+        <div className="product-tour" role="dialog" aria-modal="true">
+          <section className="product-tour-card">
+            <button className="product-tour-close" onClick={closeTour} aria-label="Skip tour">
+              ×
+            </button>
+            <div className="product-tour-progress" aria-label={`Step ${tourStep + 1} of ${tourSteps.length}`}>
+              {tourSteps.map((_, index) => (
+                <span className={index <= tourStep ? "active" : ""} key={index} />
+              ))}
+            </div>
+            <p className="eyebrow accent">{tourSteps[tourStep].eyebrow}</p>
+            <h2>{tourSteps[tourStep].title}</h2>
+            <p>{tourSteps[tourStep].body}</p>
+            <div className="product-tour-actions">
+              {tourStep > 0 && (
+                <button className="text-button" onClick={() => setTourStep(tourStep - 1)}>
+                  Back
+                </button>
+              )}
+              <button
+                className="primary-button"
+                onClick={() =>
+                  tourStep === tourSteps.length - 1
+                    ? closeTour()
+                    : setTourStep(tourStep + 1)
+                }
+              >
+                {tourStep === tourSteps.length - 1 ? "Start exploring" : "Next"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

@@ -29,8 +29,12 @@ export default function App() {
     setStarting(true);
     setSessionError("");
     try {
-      await api.createGuestSession();
-      setSessionState("active");
+      const session = await api.createGuestSession();
+      window.localStorage.setItem("ai-workspace-guest-session", session.token);
+      window.localStorage.setItem("ai-workspace-tour-v1", "pending");
+      window.location.assign(
+        `/conversations/${session.conversation_id}/branches/${session.main_branch_id}`,
+      );
     } catch (error) {
       setSessionError(
         error instanceof Error ? error.message : "Could not start the guest workspace.",
@@ -74,7 +78,7 @@ export default function App() {
             {starting ? "Opening your workspace…" : "Continue as guest"}
           </button>
           <small className="guest-note">
-            No account needed. This workspace stays with this browser for 30 days.
+            No account needed. This workspace stays with this browser.
           </small>
         </section>
       </main>

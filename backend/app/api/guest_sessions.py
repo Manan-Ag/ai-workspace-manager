@@ -52,13 +52,13 @@ def _set_guest_cookie(response: Response, guest_id: UUID, settings: Settings) ->
 def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, UUID]:
     project = Project(
         owner_id=owner_id,
-        name="Welcome demo",
-        description="A guided example showing how one conversation can grow into focused branches.",
+        name="Photography workshop",
+        description="A practical example showing how one plan can grow into focused branches.",
     )
     conversation = Conversation(
         owner_id=owner_id,
         project=project,
-        title="Planning a focused product launch",
+        title="Planning a beginner photography workshop",
         inherit_project_workflows=True,
     )
     db.add_all([project, conversation])
@@ -68,7 +68,7 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         conversation_id=conversation.id,
         role="user",
         content=(
-            "I’m preparing a launch plan for a small AI research workspace. "
+            "I’m organizing a weekend photography workshop for complete beginners. "
             "What should I prioritize?"
         ),
         metadata_json={"demo": True},
@@ -81,10 +81,10 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         role="assistant",
         content=(
             "Start with three priorities:\n\n"
-            "1. **A clear first-use experience** so a visitor understands the product quickly.\n"
-            "2. **One memorable capability**—branching an answer into a focused line of thought.\n"
-            "3. **A reliable demo path** with a realistic conversation already available.\n\n"
-            "Keep the launch small, observe where visitors hesitate, and improve that path first."
+            "1. **One clear outcome**—everyone should leave able to control exposure and composition.\n"
+            "2. **Plenty of guided practice** with short exercises and immediate feedback.\n"
+            "3. **Reliable logistics** including loaner cameras, charging, and an indoor backup location.\n\n"
+            "Keep the group small, use plain language, and spend more time shooting than presenting."
         ),
         metadata_json={"demo": True, "generation_duration_ms": 840},
     )
@@ -94,7 +94,7 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         conversation_id=conversation.id,
         parent_message_id=opening_answer.id,
         role="user",
-        content="Turn those priorities into a simple one-week plan.",
+        content="Turn those priorities into a simple one-week preparation plan.",
         metadata_json={"demo": True},
     )
     db.add(main_follow_up)
@@ -104,11 +104,11 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         parent_message_id=main_follow_up.id,
         role="assistant",
         content=(
-            "### One-week launch plan\n\n"
-            "- **Days 1–2:** Polish onboarding and the sample workspace.\n"
-            "- **Days 3–4:** Test branching, search, and chat recovery.\n"
-            "- **Day 5:** Invite a few reviewers and watch where they get stuck.\n"
-            "- **Days 6–7:** Fix the clearest problems and publish the recruiter link."
+            "### One-week preparation plan\n\n"
+            "- **Days 1–2:** Confirm the venue, class size, and available equipment.\n"
+            "- **Days 3–4:** Build three short exercises on exposure, focus, and composition.\n"
+            "- **Day 5:** Run the agenda with a friend who is new to photography.\n"
+            "- **Days 6–7:** Simplify confusing sections, charge equipment, and send attendees a checklist."
         ),
         metadata_json={"demo": True, "generation_duration_ms": 720},
     )
@@ -129,7 +129,7 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         conversation_id=conversation.id,
         parent_message_id=opening_answer.id,
         role="user",
-        content="Focus only on what a recruiter should see in the first two minutes.",
+        content="Focus only on keeping complete beginners confident during the first hour.",
         metadata_json={"demo": True},
     )
     db.add(branch_question)
@@ -139,11 +139,11 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         parent_message_id=branch_question.id,
         role="assistant",
         content=(
-            "For a two-minute recruiter review, show this sequence:\n\n"
-            "1. Enter with one click as a guest.\n"
-            "2. Open this sample chat and scan the main trunk.\n"
-            "3. Select the **Recruiter demo path** branch to see context become focused.\n"
-            "4. Start a new branch from any answer to demonstrate the core interaction."
+            "For a calm, beginner-friendly first hour:\n\n"
+            "1. Start with camera handling and one reassuring auto-mode photo.\n"
+            "2. Introduce only aperture and shutter speed using a paired exercise.\n"
+            "3. Let everyone compare photos and describe one thing they like.\n"
+            "4. End with a short composition walk that creates an early success."
         ),
         metadata_json={"demo": True, "generation_duration_ms": 610},
     )
@@ -155,14 +155,14 @@ def _seed_tutorial_workspace(db: Session, owner_id: UUID) -> tuple[UUID, UUID, U
         parent_branch_id=main_branch.id,
         forked_from_message_id=opening_answer.id,
         head_message_id=branch_answer.id,
-        name="Recruiter demo path",
+        name="Beginner-friendly first hour",
         is_main=False,
         context_summary=(
-            "The user is planning a small AI workspace launch and wants to focus the "
-            "conversation on a concise recruiter-facing demonstration."
+            "The user is planning a weekend photography workshop and wants to focus "
+            "this path on confidence and pacing for complete beginners."
         ),
-        retained_topics=["first-use experience", "branching demo", "recruiter review"],
-        omitted_topics=["broader week-long testing plan"],
+        retained_topics=["beginner confidence", "guided practice", "first-hour pacing"],
+        omitted_topics=["venue logistics", "broader one-week preparation"],
         summary_status="ready",
     )
     db.add(sample_branch)

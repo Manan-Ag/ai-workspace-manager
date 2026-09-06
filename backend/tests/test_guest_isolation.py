@@ -13,18 +13,20 @@ def test_guest_entry_and_workspace_isolation(client: TestClient) -> None:
         f"/api/conversations/{created_session['conversation_id']}"
     )
     assert sample_conversation.status_code == 200
-    assert sample_conversation.json()["title"] == "Planning a focused product launch"
+    assert sample_conversation.json()["title"] == (
+        "Planning a beginner photography workshop"
+    )
     sample_branches = client.get(
         f"/api/conversations/{created_session['conversation_id']}/branches"
     ).json()
     assert {branch["name"] for branch in sample_branches} == {
         "Main",
-        "Recruiter demo path",
+        "Beginner-friendly first hour",
     }
 
     first_project = client.post(
         "/api/projects",
-        json={"name": "Recruiter demo", "description": "First guest only"},
+        json={"name": "First guest project", "description": "First guest only"},
     )
     assert first_project.status_code == 201
 
@@ -32,7 +34,7 @@ def test_guest_entry_and_workspace_isolation(client: TestClient) -> None:
         assert second_guest.post("/api/guest-session").status_code == 200
         assert [
             project["name"] for project in second_guest.get("/api/projects").json()
-        ] == ["Welcome demo"]
+        ] == ["Photography workshop"]
         assert (
             second_guest.get(f"/api/projects/{first_project.json()['id']}").status_code
             == 404
@@ -46,6 +48,6 @@ def test_guest_entry_and_workspace_isolation(client: TestClient) -> None:
 
     first_guest_projects = client.get("/api/projects").json()
     assert {project["name"] for project in first_guest_projects} == {
-        "Welcome demo",
-        "Recruiter demo",
+        "Photography workshop",
+        "First guest project",
     }

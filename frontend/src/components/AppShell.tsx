@@ -32,8 +32,8 @@ export function AppShell() {
     },
     {
       eyebrow: "Try the tree",
-      title: "Switch between Main and Recruiter demo path.",
-      body: "Use the branch tree on the left of this chat. The sample branch shows how one broad launch discussion becomes a recruiter-focused thread.",
+      title: "Switch between Main and Beginner-friendly first hour.",
+      body: "Use the branch tree on the left of this chat. The sample branch shows how a broad workshop plan becomes a focused discussion about confidence and pacing.",
     },
     {
       eyebrow: "Your workspace",

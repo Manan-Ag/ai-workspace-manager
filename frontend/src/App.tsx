@@ -56,8 +56,8 @@ export default function App() {
     return (
       <main className="guest-gate">
         <section className="guest-card">
-          <div className="guest-brand-mark">W</div>
-          <p className="eyebrow accent">AI Workspace</p>
+          <div className="guest-brand-mark">O</div>
+          <p className="eyebrow accent">Offshoot</p>
           <h1>Explore ideas without losing the thread.</h1>
           <p className="guest-lede">
             Chat with Gemini, branch any answer into a focused path, and reuse

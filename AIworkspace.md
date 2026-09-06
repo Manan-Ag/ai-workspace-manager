@@ -1,4 +1,4 @@
-# PROJECT: AI Workspace Manager
+# PROJECT: Offshoot
 
 I already have a bare-bones version of this project. I want you to turn it into a polished, deployable full-stack application over the next 3–4 days.
 
@@ -19,7 +19,7 @@ The final result should be portfolio/resume quality, not a hackathon prototype.
 
 # 1. PRODUCT OVERVIEW
 
-Build a web-based AI Workspace Manager for organizing long-running AI work into reusable projects, workflows, conversations, and prompt templates.
+Build a web-based workspace called Offshoot for organizing long-running AI work into reusable projects, workflows, conversations, and prompt templates.
 
 The application should solve a problem that ordinary chatbot interfaces handle poorly:
 
@@ -658,7 +658,7 @@ Example:
 
 Suggested sidebar:
 
-AI Workspace
+Offshoot
 
 [+ New Project]
 
@@ -996,7 +996,7 @@ Write a serious GitHub README.
 
 Include:
 
-# AI Workspace Manager
+# Offshoot
 
 Short description.
 

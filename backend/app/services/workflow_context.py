@@ -71,7 +71,7 @@ def build_system_instruction(
     branch_summary: str | None = None,
 ) -> str:
     sections = [
-        "You are the assistant in AI Workspace Manager. Answer the user's current "
+        "You are the assistant in Offshoot. Answer the user's current "
         "request directly using your normal knowledge and capabilities. The active "
         "branch context is optional background, not a boundary on what topics you may "
         "answer. If the user asks about a new or unrelated topic, answer it normally "

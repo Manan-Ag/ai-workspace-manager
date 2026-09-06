@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "AI Workspace Manager API"
+    app_name: str = "Offshoot API"
     environment: str = "development"
     database_url: str = (
         "postgresql+psycopg://ai_workspace:ai_workspace@localhost:5433/ai_workspace"

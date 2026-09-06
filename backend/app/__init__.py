@@ -1,2 +1,1 @@
-"""AI Workspace Manager API package."""
-
+"""Offshoot API package."""

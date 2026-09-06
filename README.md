@@ -1,6 +1,6 @@
-# AI Workspace Manager
+# Offshoot
 
-AI Workspace Manager is a full-stack workspace for persistent Gemini chats, reusable AI workflows, and tree-shaped conversation branches. A chat may live inside a project or stand alone, while a workflow can be reused across any number of projects and conversations.
+Offshoot is a full-stack workspace for persistent Gemini chats, reusable AI workflows, and tree-shaped conversation branches. A chat may live inside a project or stand alone, while a workflow can be reused across any number of projects and conversations.
 
 ## What works now
 

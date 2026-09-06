@@ -73,9 +73,9 @@ export function AppShell() {
     <div className="app-shell">
       <aside className="sidebar">
         <NavLink className="brand" to="/projects">
-          <span className="brand-mark">W</span>
+          <span className="brand-mark">O</span>
           <span>
-            <strong>AI Workspace</strong>
+            <strong>Offshoot</strong>
             <small>Persistent thinking</small>
           </span>
         </NavLink>
